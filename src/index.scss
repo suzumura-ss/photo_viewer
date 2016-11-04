@@ -1,0 +1,51 @@
+div.imageCell {
+  float: left;
+  margin: 10px;
+  img {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    &.orientation-normal {
+    }
+    &.orientation-90 {
+      transform: rotate(180deg);
+    }
+    &.orientation-180 {
+      transform: rotate(90deg);
+    }
+    &.orientation-270 {
+      transform: rotate(270deg);
+    }
+  }
+}
+div.imageCells {
+  &.LensID-hide > * > * {
+    .LensID {
+      display: none;
+    }
+  }
+  &.FNumber-hide > * > * {
+    .FNumber {
+      display: none;
+    }
+  }
+  &.FocalLength-hide > * > * {
+    .FocalLength {
+      display: none;
+    }
+  }
+  &.ShutterSpeed-hide > * > * {
+    .ShutterSpeed {
+      display: none;
+    }
+  }
+  &.ISO-hide > * > * {
+    .ISO {
+      display: none;
+    }
+  }
+  &.ExposureCompensation-hide > * > * {
+    .ExposureCompensation {
+      display: none;
+    }
+  }
+}
