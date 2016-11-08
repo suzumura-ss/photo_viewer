@@ -64,7 +64,8 @@ class Images extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      files: []
+      files: [],
+      display: ""
     };
   }
 
@@ -72,6 +73,10 @@ class Images extends React.Component {
     FS.enumFiles(this.props.baseDir, /\.jpg/i).then((files)=>{
       this.setState({files: files});
     });
+  }
+
+  clear() {
+    this.setState({files:[]})
   }
 
   render() {
@@ -84,7 +89,7 @@ class Images extends React.Component {
         return (<ImageCell key={path} fileName={path} />);
       });
     }
-    return (<div className={'imageCells ' + this.props.display}>{cells}</div>);
+    return (<div className={'imageCells ' + this.state.display}>{cells}</div>);
   }
 }
 
@@ -116,7 +121,7 @@ class Navigation extends React.Component {
     }
   }
 
-  onClick(selectedKey) {
+  toggleState(selectedKey) {
     var display = Object.keys(this.state).map((key)=>{
       if ((key===selectedKey &&  this.state[key]) || (key!==selectedKey && !this.state[key])) {
         return key + "-hide";
@@ -131,9 +136,13 @@ class Navigation extends React.Component {
     });
   }
 
+  reload() {
+    this.props.theApp.reload();
+  }
+
   render() {
     var elm = Object.keys(this.state).map((key)=>{
-      return (<Button key={key} active={this.state[key]} onClick={()=>{this.onClick(key)}}>{this.labels[key]}</Button>)
+      return (<Button key={key} active={this.state[key]} onClick={()=>{this.toggleState(key)}}>{this.labels[key]}</Button>)
     });
 
     const Navigation_inctance = (
@@ -147,6 +156,7 @@ class Navigation extends React.Component {
           <Navbar.Form pullLeft>
             <FormGroup>
               {elm}
+              <Button onClick={()=>{this.reload()}}>Reload</Button>
             </FormGroup>
           </Navbar.Form>
         </Navbar.Collapse>
@@ -161,19 +171,35 @@ class Application extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      display: ""
+      baseDir: this.props.initialBaseDir
     }
   }
 
-  updateDisplay(newDisplay) {
-    this.setState({display: newDisplay});
+  updateDisplay(display) {
+    this.refs.images.setState({display});
+  }
+
+  reload(baseDir) {
+    if (!baseDir) {
+      baseDir = this.state.baseDir;
+    }
+    this.refs.images.clear();
+    this.setState({baseDir})
   }
 
   render() {
     return (
       <div>
-        <Navigation baseDir={this.props.baseDir} updateDisplay={(stat)=>{this.updateDisplay(stat)}}/>
-        <Images baseDir={this.props.baseDir} display={this.state.display}/>
+        <Navigation
+          baseDir={this.state.baseDir}
+          updateDisplay={(stat)=>{this.updateDisplay(stat)}}
+          theApp={this}
+          ref="navigation"
+        />
+        <Images
+          baseDir={this.state.baseDir}
+          ref="images"
+          />
       </div>
     );
   }
@@ -183,6 +209,6 @@ class Application extends React.Component {
 
 
 ReactDOM.render(
-  (<Application baseDir='/Volumes/JetDrive330/OLYMPUS Viewer 3'/>),
+  (<Application initialBaseDir='/Volumes/JetDrive330/OLYMPUS Viewer 3/2016_09_22'/>),
   document.getElementById('application')
 );
