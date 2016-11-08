@@ -43,6 +43,7 @@ class ImageCell extends React.Component {
 ImageCell.Exif = class extends React.Component {
   render() {
     const ExifProcs = {
+      FileName:     (v)=>{ return v },
       LensID:       (v)=>{ return v },
       FNumber:      (v)=>{ return 'F'+v },
       FocalLength:  (v)=>{ return v },
@@ -62,18 +63,14 @@ ImageCell.Exif = class extends React.Component {
 class Images extends React.Component {
   constructor(props) {
     super(props);
-    //this.state = {display: "LensID-hide FNumber-hide FocalLength-hide ShutterSpeed-hide ISO-hide ExposureCompensation-hide"};
-    //this.state = {display: "ShutterSpeed-hide ISO-hide ExposureCompensation-hide"};
     this.state = {
-      display: "LensID-hide",
       files: []
     };
   }
 
   update() {
     FS.enumFiles(this.props.baseDir, /\.jpg/i).then((files)=>{
-      this.state.files = files;
-      this.setState(this.state);
+      this.setState({files: files});
     });
   }
 
@@ -87,14 +84,98 @@ class Images extends React.Component {
         return (<ImageCell key={path} fileName={path} />);
       });
     }
-    return (<div className={'imageCells ' + this.state.display}>{cells}</div>);
+    return (<div className={'imageCells ' + this.props.display}>{cells}</div>);
+  }
+}
+
+
+const {Navbar, Nav, FormGroup, FormControl, Button} =require('react-bootstrap');
+
+class Navigation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      FileName: true,
+      LensID: true,
+      FNumber: true,
+      FocalLength: true,
+      ShutterSpeed: true,
+      ISO: true,
+      ExposureCompensation: true,
+      DateTimeOriginal: true
+    }
+    this.labels = {
+      FileName: "Name",
+      LensID: "LensID",
+      FNumber: "F",
+      FocalLength: "F.Length",
+      ShutterSpeed: "S.Speed",
+      ISO: "ISO",
+      ExposureCompensation: "EV",
+      DateTimeOriginal: "Date"
+    }
+  }
+
+  onClick(selectedKey) {
+    var display = Object.keys(this.state).map((key)=>{
+      if ((key===selectedKey &&  this.state[key]) || (key!==selectedKey && !this.state[key])) {
+        return key + "-hide";
+      }
+      return "";
+    }).join(' ').trim();
+    this.props.updateDisplay(display);
+    this.setState((prevState, props)=>{
+      var obj = {}
+      obj[selectedKey] = !prevState[selectedKey];
+      return obj;
+    });
+  }
+
+  render() {
+    var elm = Object.keys(this.state).map((key)=>{
+      return (<Button key={key} active={this.state[key]} onClick={()=>{this.onClick(key)}}>{this.labels[key]}</Button>)
+    });
+
+    const Navigation_inctance = (
+      <Navbar fixedTop={true}>
+        <Navbar.Header>
+          <Navbar.Brand>
+            <a href="#">{this.props.baseDir.split('/').last()}</a>
+          </Navbar.Brand>
+        </Navbar.Header>
+        <Navbar.Collapse>
+          <Navbar.Form pullLeft>
+            <FormGroup>
+              {elm}
+            </FormGroup>
+          </Navbar.Form>
+        </Navbar.Collapse>
+      </Navbar>
+    );
+    return Navigation_inctance;
   }
 }
 
 
 class Application extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      display: ""
+    }
+  }
+
+  updateDisplay(newDisplay) {
+    this.setState({display: newDisplay});
+  }
+
   render() {
-    return (<div><Images baseDir={this.props.baseDir}/></div>);
+    return (
+      <div>
+        <Navigation baseDir={this.props.baseDir} updateDisplay={(stat)=>{this.updateDisplay(stat)}}/>
+        <Images baseDir={this.props.baseDir} display={this.state.display}/>
+      </div>
+    );
   }
 }
 
@@ -102,6 +183,6 @@ class Application extends React.Component {
 
 
 ReactDOM.render(
-  (<Application baseDir='/Volumes/JetDrive330/OLYMPUS Viewer 3/'/>),
+  (<Application baseDir='/Volumes/JetDrive330/OLYMPUS Viewer 3'/>),
   document.getElementById('application')
 );
