@@ -4,6 +4,7 @@ body {
 
 nav.navbar {
   min-height: 34px;
+  margin-bottom: 0px;
   .container {
     margin: 0px 16px 0px 16px;
   }
@@ -15,6 +16,13 @@ nav.navbar {
 .navbar-brand {
   padding: 8px 16px 0px 16px;
   height: 34px;
+}
+.navbar-nav>.dropdown {
+  height: 41px;
+  margin-top: -7px;
+}
+.dropdown-menu-icon {
+  margin-right: 0.5em;
 }
 
 div.imageCell {

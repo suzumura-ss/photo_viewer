@@ -94,20 +94,23 @@ class Images extends React.Component {
 }
 
 
-const {Navbar, Nav, FormGroup, FormControl, Button} =require('react-bootstrap');
+const {Navbar, Nav, NavDropdown, MenuItem, FormGroup, FormControl, Glyphicon, Button} =require('react-bootstrap');
 
 class Navigation extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      FileName: true,
-      LensID: true,
-      FNumber: true,
-      FocalLength: true,
-      ShutterSpeed: true,
-      ISO: true,
-      ExposureCompensation: true,
-      DateTimeOriginal: true
+      buttons: {
+        FileName: true,
+        LensID: true,
+        FNumber: true,
+        FocalLength: true,
+        ShutterSpeed: true,
+        ISO: true,
+        ExposureCompensation: true,
+        DateTimeOriginal: true
+      },
+      currentDir: props.rootDir
     }
     this.labels = {
       FileName: "Name",
@@ -122,16 +125,16 @@ class Navigation extends React.Component {
   }
 
   toggleState(selectedKey) {
-    var display = Object.keys(this.state).map((key)=>{
-      if ((key===selectedKey &&  this.state[key]) || (key!==selectedKey && !this.state[key])) {
+    var display = Object.keys(this.state.buttons).map((key)=>{
+      if ((key===selectedKey &&  this.state.buttons[key]) || (key!==selectedKey && !this.state.buttons[key])) {
         return key + "-hide";
       }
       return "";
     }).join(' ').trim();
     this.props.updateDisplay(display);
     this.setState((prevState, props)=>{
-      var obj = {}
-      obj[selectedKey] = !prevState[selectedKey];
+      var obj = {buttons: prevState.buttons}
+      obj.buttons[selectedKey] = !prevState.buttons[selectedKey];
       return obj;
     });
   }
@@ -140,22 +143,32 @@ class Navigation extends React.Component {
     this.props.theApp.reload();
   }
 
-  render() {
-    var elm = Object.keys(this.state).map((key)=>{
-      return (<Button key={key} active={this.state[key]} onClick={()=>{this.toggleState(key)}}>{this.labels[key]}</Button>)
-    });
+  changeDir(dir) {
+    this.setState({currentDir: dir});
+    this.props.theApp.reload(dir);
+  }
 
+  render() {
+    const buttons = Object.keys(this.state.buttons).map((key)=>{
+      return (<Button key={key} active={this.state.buttons[key]} onClick={()=>{this.toggleState(key)}}>{this.labels[key]}</Button>)
+    });
+    const dirs = FS.enumDirs(this.props.rootDir, /^2/).map((dir)=>{
+      return (
+        <MenuItem key={dir} eventKey={dir}><Glyphicon glyph="folder-open" className='dropdown-menu-icon' />{dir.split('/').last()}</MenuItem>
+      );
+    });
     const Navigation_inctance = (
       <Navbar fixedTop={true}>
-        <Navbar.Header>
-          <Navbar.Brand>
-            <a href="#">{this.props.baseDir.split('/').last()}</a>
-          </Navbar.Brand>
-        </Navbar.Header>
         <Navbar.Collapse>
+          <Nav onSelect={(dir)=>{this.changeDir(dir)}}>
+            <NavDropdown title={this.state.currentDir.split('/').last()} id='dropdown-dir' >
+              <MenuItem key={this.props.rootDir} eventKey={this.props.rootDir}>{this.props.rootDir.split('/').last()}</MenuItem>
+              {dirs}
+            </NavDropdown>
+          </Nav>
           <Navbar.Form pullLeft>
             <FormGroup>
-              {elm}
+              {buttons}
               <Button onClick={()=>{this.reload()}}>Reload</Button>
             </FormGroup>
           </Navbar.Form>
@@ -171,7 +184,7 @@ class Application extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      baseDir: this.props.initialBaseDir
+      baseDir: this.props.rootDir + '/' + this.props.baseDir
     }
   }
 
@@ -191,7 +204,7 @@ class Application extends React.Component {
     return (
       <div>
         <Navigation
-          baseDir={this.state.baseDir}
+          rootDir={this.props.rootDir}
           updateDisplay={(stat)=>{this.updateDisplay(stat)}}
           theApp={this}
           ref="navigation"
@@ -209,6 +222,6 @@ class Application extends React.Component {
 
 
 ReactDOM.render(
-  (<Application initialBaseDir='/Volumes/JetDrive330/OLYMPUS Viewer 3/2016_09_22'/>),
+  (<Application rootDir='/Volumes/JetDrive330/OLYMPUS Viewer 3' baseDir='2016_08_03'/>),
   document.getElementById('application')
 );

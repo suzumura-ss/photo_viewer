@@ -29,11 +29,24 @@ function enumFiles(dir, body_pattern) {
 };
 
 
+function enumDirs(dir, body_pattern) {
+  var result = FS.readdirSync(dir).map((file)=>{
+    var path = dir + '/' + file;
+    if (FS.statSync(path).isDirectory() && body_pattern.test(file)) {
+      return path;
+    }
+    return undefined;
+  });
+  return result.filter((a)=>{ return !!a});
+}
+
+
 module.exports = {
   enumFiles,
   enumFilesSync,
   extend: function(className) {
     className.enumFiles = enumFiles;
     className.enumFilesSync = enumFilesSync;
+    className.enumDirs = enumDirs;
   }
 }
