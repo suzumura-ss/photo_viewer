@@ -21,6 +21,11 @@ nav.navbar {
   height: 41px;
   margin-top: -7px;
 }
+.dropdown-menu {
+  height: auto;
+  max-height: 300px;
+  overflow-x: hidden;
+}
 .dropdown-menu-icon {
   margin-right: 0.5em;
 }
