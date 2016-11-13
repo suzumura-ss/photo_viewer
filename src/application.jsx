@@ -55,7 +55,7 @@ ImageCell.Exif = class extends React.Component {
     var elm = Object.keys(ExifProcs).map((key)=>{
       return (<li key={key} className={key}>{ExifProcs[key](this.props.exif[key])}</li>);
     });
-    return (<ul>{elm}</ul>);
+    return (<ul className='exif'>{elm}</ul>);
   }
 }
 
