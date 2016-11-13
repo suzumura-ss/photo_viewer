@@ -7,7 +7,7 @@ Sugar.extend();
 
 require(__dirname + '/js/fs-ext').extend(FS);
 
-const {Image, Photo, Thumbnail, Preview} = require(__dirname + '/js/image');
+const {Image, Photo, Thumbnail, Preview, Album} = require(__dirname + '/js/image');
 
 
 class ImageCell extends React.Component {
@@ -15,10 +15,14 @@ class ImageCell extends React.Component {
     super(props);
     this.state = {exif: {}};
     Image.findOrCreateWithFile(props.fileName).then((result)=>{
-      const exif = result[0].dataValues,
-            thumb = result[1].dataValues;
-      exif.ThumbnailImage = thumb.Image;
-      this.setState({exif: exif});
+      if (result[1] && result[2]) {
+        const exif = result[0].dataValues,
+              thumb = result[1].dataValues;
+        exif.ThumbnailImage = thumb.Image;
+        this.setState({exif: exif});
+      } else {
+        console.log("Thumbnail and/or Preview not found.", result);
+      }
     });
   }
 
@@ -70,9 +74,12 @@ class Images extends React.Component {
   }
 
   update() {
-    FS.enumFiles(this.props.baseDir, /\.jpg/i).then((files)=>{
-      this.setState({files: files});
-    });
+    if (this.props.album) {
+    } else {
+      FS.enumFiles(this.props.baseDir, /\.jpg/i).then((files)=>{
+        this.setState({files: files});
+      });
+    }
   }
 
   clear() {
@@ -110,7 +117,8 @@ class Navigation extends React.Component {
         ExposureCompensation: true,
         DateTimeOriginal: true
       },
-      currentDir: props.rootDir
+      currentDir: props.rootDir,
+      albums: []
     }
     this.labels = {
       FileName: "Name",
@@ -149,6 +157,8 @@ class Navigation extends React.Component {
   }
 
   render() {
+    if (this.state.albums.isEmpty()) {
+    }
     const buttons = Object.keys(this.state.buttons).map((key)=>{
       return (<Button key={key} active={this.state.buttons[key]} onClick={()=>{this.toggleState(key)}}>{this.labels[key]}</Button>)
     });
@@ -157,13 +167,20 @@ class Navigation extends React.Component {
         <MenuItem key={dir} eventKey={dir}><Glyphicon glyph="folder-open" className='dropdown-menu-icon' />{dir.split('/').last()}</MenuItem>
       );
     });
+    const albums = this.state.albums.map((album)=>{
+      return (
+        <MenuItem key={'album:'+album.id} eventKey={album.id}><Glyphicon glyph="book" className='dropdown-menu-icon' />{album.name}</MenuItem>
+      );
+    });
     const Navigation_inctance = (
       <Navbar fixedTop={true}>
         <Navbar.Collapse>
           <Nav onSelect={(dir)=>{this.changeDir(dir)}}>
-            <NavDropdown title={this.state.currentDir.split('/').last()} id='dropdown-dir' >
+            <NavDropdown title={this.state.currentDir.split('/').last()} id='dropdown-dir'>
               <MenuItem key={this.props.rootDir} eventKey={this.props.rootDir}>{this.props.rootDir.split('/').last()}</MenuItem>
               {dirs}
+              <MenuItem divider />
+              {albums}
             </NavDropdown>
           </Nav>
           <Navbar.Form pullLeft>

@@ -9,6 +9,10 @@ const PhotosDatabase = {
       storage: database_path
     });
 
+    const Album = sequelize.define('Album', {
+      Name:  Sequelize.STRING(192)
+    });
+
     const Photo = sequelize.define('Photo', {
       FileName: {
         type: Sequelize.STRING(192),
@@ -37,6 +41,7 @@ const PhotosDatabase = {
         allowNull: false
       }
     });
+    Album.hasMany(Photo);
 
     const Thumbnail = sequelize.define('Thumbnail', {
       Image: {
@@ -66,7 +71,7 @@ const PhotosDatabase = {
     });
     Photo.hasOne(Preview);
 
-    return {Photo:Photo, Thumbnail:Thumbnail, Preview:Preview};
+    return {Photo:Photo, Thumbnail:Thumbnail, Preview:Preview, Album:Album};
   }
 };
 

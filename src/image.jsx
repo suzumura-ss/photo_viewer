@@ -6,7 +6,7 @@ try {
   app = require('electron').app;
 }
 const DbFileName = app.getPath('userData') + '/application.sqlite3';
-const {Photo, Thumbnail, Preview} = require(__dirname + '/photo_database').connect(DbFileName);
+const {Photo, Thumbnail, Preview, Album} = require(__dirname + '/photo_database').connect(DbFileName);
 const ExifReader = require(__dirname + '/exifreader');
 
 
@@ -70,11 +70,11 @@ class Image {
   }
 
   static migrate() {
-    Photo.count().catch((e)=>{
+    const run_migrate = ()=>{
       // https://github.com/sequelize/umzug
       const Umzug = require('umzug');
       const Sequelize = require('sequelize');
-      const umzugs = [Photo, Thumbnail, Preview].map((model)=>{
+      const umzugs = [Photo, Thumbnail, Preview, Album].map((model)=>{
         return new Umzug({
           storage: 'Sequelize',
           storageOptions: {
@@ -89,8 +89,11 @@ class Image {
         umzug.execute({migrations:[''], method: 'up'})
         .then(umzug, console.log)
       });
+    }
+    Photo.count().catch((e)=>{
+      run_migrate();
     });
   }
 }
 
-module.exports = {Image, Photo, Thumbnail, Preview};
+module.exports = {Image, Photo, Thumbnail, Preview, Album};
